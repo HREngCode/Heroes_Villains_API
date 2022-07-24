@@ -3,5 +3,5 @@ from . import views
 
 urlpatterns = [
     path('', views.super_types_list),
-    # path('<int:pk>', views.super_types_list),
+    path('<int:pk>', views.super_types_list),
 ]
