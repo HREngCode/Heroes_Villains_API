@@ -5,5 +5,5 @@ from .models import(SuperType)
 
 urlpatterns = [
     path('', views.super_types_list),
-    path('<int:pk>', views.super_types_list),
+    path('<int:pk>/', views.super_types_list),
 ]
