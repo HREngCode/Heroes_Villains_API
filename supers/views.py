@@ -2,6 +2,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
+from super_types.models import SuperType
 from .serializers import SupersSerializer
 from .models import Super
 
@@ -13,6 +14,17 @@ def super_list(request):
         queryset = Super.objects.all()
         if super_type_class:
             queryset = queryset.filter(super_type__type=super_type_class)
+        else:
+            super_type = SuperType.objects.all()
+            super_type_dictionary = {}
+
+            for super_type in super_type:
+                supers = Super.objects.filter(super_type__type=super_type.id)
+                supers_serializer = SupersSerializer(supers, many=True)
+                super_type_dictionary[super_type.type] = {
+                    "supers": supers_serializer.data
+                }
+            return Response(super_type_dictionary)
         serializer = SupersSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     elif request.method == 'POST':
