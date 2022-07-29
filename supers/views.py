@@ -6,6 +6,21 @@ from super_types.models import SuperType
 from .serializers import SupersSerializer
 from .models import Super
 
+@api_view(['GET'])
+def super_list(request):
+    if request.method == 'GET' and super_type_class == False:
+        super_type_class = request.query_params.get('super_types')
+        super_type = SuperType.objects.all()
+        super_type_dictionary = {}
+
+        for super_type in super_type:
+            supers = Super.objects.filter(super_type__type=super_type.id)
+            supers_serializer = SupersSerializer(supers, many=True)
+            super_type_dictionary[super_type.type] = {
+                "supers": supers_serializer.data
+            }
+        return Response(super_type_dictionary)
+
 
 @api_view(['GET', 'POST'])
 def super_list(request):
@@ -14,17 +29,7 @@ def super_list(request):
         queryset = Super.objects.all()
         if super_type_class:
             queryset = queryset.filter(super_type__type=super_type_class)
-        else:
-            super_type = SuperType.objects.all()
-            super_type_dictionary = {}
 
-            for super_type in super_type:
-                supers = Super.objects.filter(super_type__type=super_type.id)
-                supers_serializer = SupersSerializer(supers, many=True)
-                super_type_dictionary[super_type.type] = {
-                    "supers": supers_serializer.data
-                }
-            return Response(super_type_dictionary)
         serializer = SupersSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     elif request.method == 'POST':
