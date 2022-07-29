@@ -6,38 +6,37 @@ from super_types.models import SuperType
 from .serializers import SupersSerializer
 from .models import Super
 
-@api_view(['GET'])
-def super_list(request):
-    if request.method == 'GET' and super_type_class == False:
-        super_type_class = request.query_params.get('super_types')
-        super_type = SuperType.objects.all()
-        super_type_dictionary = {}
-
-        for super_type in super_type:
-            supers = Super.objects.filter(super_type__type=super_type.id)
-            supers_serializer = SupersSerializer(supers, many=True)
-            super_type_dictionary[super_type.type] = {
-                "supers": supers_serializer.data
-            }
-        return Response(super_type_dictionary)
-
-
 @api_view(['GET', 'POST'])
 def super_list(request):
-    if request.method == 'GET':
-        super_type_class = request.query_params.get('super_types')
-        queryset = Super.objects.all()
-        if super_type_class:
-            queryset = queryset.filter(super_type__type=super_type_class)
 
-        serializer = SupersSerializer(queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    if request.method == 'GET':
+
+        queryset = Super.objects.all()
+
+        heroes = queryset.filter(super_type__type = "Hero")
+        villains = queryset.filter(super_type__type = "Villain")
+
+        heroes_serializer = SupersSerializer(heroes, many=True)
+        villains_serializer = SupersSerializer(villains, many=True)
+
+        if request.query_params.get('type') == 'hero':
+            custom_response = heroes_serializer.data
+        elif request.query_params.get('type') == 'villain':
+            custom_response = villains_serializer.data
+        else:
+            custom_response = {
+            'Heroes': heroes_serializer.data,
+            'Villains': villains_serializer.data
+            
+                
+            }
+        return Response(custom_response)
+
     elif request.method == 'POST':
         serializer = SupersSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-
 
 @api_view(['GET', 'PUT', 'DELETE'])
 def super_detail(request, pk):
